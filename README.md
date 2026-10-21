@@ -6,7 +6,7 @@
 
 *Planificateur de commandes (remplace MC-Cron)*
 
-<img src="https://img.shields.io/badge/Paper%20%C2%B7%20Bungee%20%C2%B7%20Velocity-1.20.2-f2a900?style=for-the-badge" alt="Paper · Bungee · Velocity 1.20.2"> <img src="https://img.shields.io/badge/Java-17-e76f00?style=for-the-badge" alt="Java 17"> <img src="https://img.shields.io/badge/SkyHand-Opale%20%C2%B7%20Lobby%20%C2%B7%20Login%20%C2%B7%20Proxy-3aa655?style=for-the-badge" alt="SkyHand Opale · Lobby · Login · Proxy">
+<img src="https://img.shields.io/badge/Paper%20%C2%B7%20Bungee%20%C2%B7%20Velocity-26.3-f2a900?style=for-the-badge" alt="Paper · Bungee · Velocity 26.3"> <img src="https://img.shields.io/badge/Java-25-e76f00?style=for-the-badge" alt="Java 25"> <img src="https://img.shields.io/badge/SkyHand-Opale%20%C2%B7%20Lobby%20%C2%B7%20Login%20%C2%B7%20Proxy-3aa655?style=for-the-badge" alt="SkyHand Opale · Lobby · Login · Proxy">
 
 </div>
 
@@ -42,7 +42,7 @@ Fichiers par défaut repris du serveur (secrets remplacés par `CHANGE_ME`) :
 
 ## Compilation
 
-Java 17 et Maven :
+Java 25 et Maven :
 
 ```bash
 mvn clean package
