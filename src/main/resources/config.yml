@@ -1,0 +1,80 @@
+# SHCron - serveur opale
+# Repris de plugins/SRV-Cron/config.yml, avec deux corrections.
+#
+# 1. "restart" (5h55) et "restart2" (5h59) etaient deux taches separees pour
+#    une seule sequence. Si le serveur plantait et redemarrait entre les deux,
+#    la seconde s'executait quand meme et arretait un serveur tout juste
+#    redemarre. C'est arrive : les logs montrent des demarrages a 01h36 puis
+#    01h37. Tout est desormais une seule tache : si le serveur redemarre en
+#    cours de sequence, les commandes en attente disparaissent avec la JVM.
+#
+# 2. Un message etait present deux fois au meme offset (+185), donc affiche
+#    en double aux joueurs. Les doublons exacts ont ete retires.
+#
+# "+N commande" = decalage absolu depuis le declenchement de la tache, en
+# parallele. Equivalent exact du "timer N" de SRV-Cron. Choisi plutot que le
+# "wait:" sequentiel : sur un compte a rebours, on lit "+240" et on sait qu'on
+# est a 4 minutes, et inserer une ligne ne decale pas toutes les suivantes.
+#
+# Les placeholders (%voteparty_...%) sont resolus via PlaceholderAPI.
+timezone: Europe/Paris
+log-executions: true
+startup:
+  enabled: true
+  delay-seconds: 15
+  commands:
+  - crazyenvoys reload
+jobs:
+  redemarrage:
+    enabled: true
+    cron: 55 5 * * *
+    commands:
+    - bc &7&l« &d&lSH &8&l» &dRedémarrage automatique des SkyBlock dans &e5 minutes
+    - tm broadcast &7&l« &5&lAttention &8&l»\n&dRedémarrage automatique dans &e5 minutes
+    - +2 tm abroadcast &dRedémarrage quotidien dans &e5 minutes
+    - +6 tm abroadcast &7&l« &7Le &dredémarrage &7ne prend que &51 minute MAX &8&l»
+    - +30 tm abroadcast &dRedémarrage quotidien dans &e5 minutes
+    - +35 tm abroadcast &7&l« &7Le &dredémarrage &7ne prend que &51 minute MAX &8&l»
+    - +60 tm abroadcast &dRedémarrage quotidien dans &e4 minutes
+    - +65 tm abroadcast &7&l« &7Le &dredémarrage &7ne prend que &51 minute MAX &8&l»
+    - +120 tm abroadcast &dRedémarrage quotidien dans &e3 minutes
+    - +125 tm abroadcast &7&l« &7Le &dredémarrage &7ne prend que &51 minute MAX &8&l»
+    - +180 tm abroadcast &dRedémarrage quotidien dans &e2 minutes
+    - +185 tm abroadcast &7&l« &7Le &dredémarrage &7ne prend que &51 minute MAX &8&l»
+    - +240 bc &7&l« &d&lSH &8&l» &dRedémarrage automatique des SkyBlock dans &c1 minute
+    - +240 tm broadcast &7&l« &5&lAttention &8&l»\n&dRedémarrage automatique dans &61 &dminute
+    - +290 bc &7&l« &d&lSH &8&l» &dRedémarrage automatique des SkyBlock dans &c10 secondes
+    - +290 tm broadcast &7&l« &5&lAttention &8&l»\n&dRedémarrage automatique dans &c10 secondes
+    - +290 save-all
+    - +290 irp forcebackup all
+    - +295 bc &7&l« &d&lSH &8&l» &dRedémarrage automatique des SkyBlock dans &c5 secondes
+    - +295 tm broadcast &7&l« &5&lAttention &8&l»\n&dRedémarrage automatique dans &c5 secondes
+    - +296 bc &7&l« &d&lSH &8&l» &dRedémarrage automatique des SkyBlock dans &44 secondes
+    - +296 tm broadcast &7&l« &5&lAttention &8&l»\n&dRedémarrage automatique dans &44 secondes
+    - +297 bc &7&l« &d&lSH &8&l» &dRedémarrage automatique des SkyBlock dans &43 secondes
+    - +297 tm broadcast &7&l« &5&lAttention &8&l»\n&dRedémarrage automatique dans &43 secondes
+    - +298 bc &7&l« &d&lSH &8&l» &dRedémarrage automatique des SkyBlock dans &42 secondes
+    - +298 tm broadcast &7&l« &5&lAttention &8&l»\n&dRedémarrage automatique dans &42 secondes
+    - +299 bc &7&l« &d&lSH &8&l» &dRedémarrage automatique des SkyBlock dans &41 seconde
+    - +299 tm broadcast &7&l« &5&lAttention &8&l»\n&dRedémarrage automatique dans &41 seconde
+    - +300 kickall Redémarrage du SkyBlock &6Opale&f, veuillez patienter environ &650 secondes&f...
+    - +302 stop
+  envoy:
+    enabled: true
+    cron: 25 18 * * *
+    commands:
+    - 'bc &7&l« &d&lSH &8&l» &fUn évènement &dCargaison &fcommencera dans &d5 minutes &f!
+
+      &7🔎 &fᴏʙᴊᴇᴄᴛɪꜰ : &7ᴄᴏʟʟᴇᴄᴛᴇᴢ ʟᴇ ᴘʟᴜѕ ᴅᴇ ᴄᴀʀɢᴀɪѕᴏɴ [/event]'
+  envoy2:
+    enabled: true
+    cron: 29 18 * * *
+    commands:
+    - 'bc &7&l« &d&lSH &8&l» &fUn évènement &dCargaison &fcommencera dans &d1 minute &f!
+
+      &7🔎 &fᴏʙᴊᴇᴄᴛɪꜰ : &7ᴄᴏʟʟᴇᴄᴛᴇᴢ ʟᴇ ᴘʟᴜѕ ᴅᴇ ᴄᴀʀɢᴀɪѕᴏɴ [/event]'
+  topvote:
+    enabled: true
+    cron: 59 23 * * *
+    commands:
+    - bc &7&l« &a&lSH &8&l» &a%voteparty_top_DAILY_name_1% &fa été &aTop voteur du jour &favec &6%voteparty_top_DAILY_votes_1% votes &f!

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.Cry_Legende</groupId>
+    <artifactId>SHCron</artifactId>
+    <version>1.2</version>
+    <packaging>jar</packaging>
+
+    <name>SHCron</name>
+    <description>Planificateur de commandes pour Paper/Purpur et Velocity</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <defaultGoal>clean package</defaultGoal>
+        <finalName>SHCron-${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>${java.version}</release>
+                    <!-- JDK 22+ coupe le traitement implicite des annotations : sans ca
+                         l'AP de velocity-api ne genere pas velocity-plugin.json. -->
+                    <compilerArgs>
+                        <arg>-proc:full</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <!-- Bukkit et Velocity embarquent tous deux snakeyaml,
+                                     dans des versions differentes. On relocalise. -->
+                                <relocation>
+                                    <pattern>org.yaml.snakeyaml</pattern>
+                                    <shadedPattern>org.Cry_Legende.shcron.libs.snakeyaml</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>plugin.yml</include>
+                    <include>paper-plugin.yml</include>
+                    <include>bungee.yml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>plugin.yml</exclude>
+                    <exclude>paper-plugin.yml</exclude>
+                    <exclude>bungee.yml</exclude>
+                </excludes>
+            </resource>
+        </resources>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
+    <!-- paper-api 1.20.2 et velocity-api 3.5.1 tirent deux Adventure differents.
+         On fixe celui de Velocity (le plus recent) pour la compilation ; a
+         l'execution chaque plateforme fournit le sien, et le code Bukkit ici
+         n'utilise que l'API Bukkit historique. -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>net.kyori</groupId>
+                <artifactId>adventure-bom</artifactId>
+                <version>4.26.1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- Compile contre l'API 1.20.2 : tout ce qui est utilise ici existe
+             toujours dans les versions suivantes, donc le meme jar tourne sur
+             1.20.2 comme sur les Purpur recents. -->
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.20.2-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.velocitypowered</groupId>
+            <artifactId>velocity-api</artifactId>
+            <version>3.5.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.2</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+</project>

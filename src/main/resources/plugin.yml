@@ -1,0 +1,23 @@
+name: SHCron
+version: '${project.version}'
+main: org.Cry_Legende.sHCron.bukkit.SHCronBukkit
+# 1.13 est un minimum, pas un maximum : le meme jar tourne sur Paper 1.18.2
+# comme sur les Purpur recents, tant que les API utilisees existent encore.
+api-version: '1.13'
+author: Cry_Legende
+description: Planificateur de commandes (remplace MC-Cron)
+folia-supported: false
+# Optionnel. Present -> les placeholders des commandes sont resolus en contexte
+# serveur, comme le faisait SRV-Cron. Absent -> les commandes partent telles quelles.
+softdepend: [PlaceholderAPI]
+
+commands:
+  shcron:
+    description: Gestion des taches planifiees
+    usage: /shcron <list|reload|run>
+    permission: shcron.admin
+
+permissions:
+  shcron.admin:
+    description: Acces a la commande /shcron
+    default: op
