@@ -100,12 +100,12 @@ public final class SHCronBukkit extends JavaPlugin implements Platform, TabExecu
     @Override
     public void dispatchConsole(String command) {
         // Le tick tourne en async : toute commande doit repasser par le thread principal.
+        // Les placeholders y sont résolus aussi : beaucoup d'extensions PlaceholderAPI touchent à l'API Bukkit.
         if (!isEnabled()) {
             return;
         }
-        String resolved = applyPlaceholders(command);
         Bukkit.getScheduler().runTask(this,
-            () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), resolved));
+            () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), applyPlaceholders(command)));
     }
 
     @Override

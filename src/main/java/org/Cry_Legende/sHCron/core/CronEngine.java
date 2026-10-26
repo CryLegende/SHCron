@@ -1,5 +1,6 @@
 package org.Cry_Legende.sHCron.core;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -43,13 +44,14 @@ public final class CronEngine {
     private static final long MAX_WAIT_SECONDS = 3600;
 
     private final Platform platform;
-    private CronConfig config;
+    // Ecrits par le thread principal (start, reload), lus par le thread du tick
+    private volatile CronConfig config;
 
     /**
      * Minute epoch deja traitee, pour ne jamais executer deux fois la meme.
      */
     private final AtomicLong lastMinute = new AtomicLong(-1);
-    private long startupDueAt = -1;
+    private volatile long startupDueAt = -1;
 
     /**
      * Sert uniquement a reprendre une liste de commandes apres une pause.
@@ -74,7 +76,7 @@ public final class CronEngine {
         platform.startTicking(this::tick);
     }
 
-    public void stop() {
+    public synchronized void stop() {
         platform.stopTicking();
         if (delayer != null) {
             delayer.shutdownNow();
@@ -131,8 +133,10 @@ public final class CronEngine {
                 return;
             }
 
-            ZonedDateTime now = ZonedDateTime.now(config.zone());
-            for (CronJob job : config.jobs()) {
+            // Heure déduite de la minute comptée : un tick à cheval sur deux minutes ne peut pas lancer deux fois la même tâche
+            CronConfig current = config;
+            ZonedDateTime now = Instant.ofEpochSecond(minute * 60L).atZone(current.zone());
+            for (CronJob job : current.jobs()) {
                 if (job.enabled() && job.schedule().matches(now)) {
                     run(job.name(), job.commands());
                 }
@@ -170,7 +174,7 @@ public final class CronEngine {
             // la liste tout de suite, sans decaler les suivantes.
             Matcher off = OFFSET.matcher(command.trim());
             if (off.matches()) {
-                long seconds = Math.min(Long.parseLong(off.group(1)), MAX_WAIT_SECONDS);
+                long seconds = seconds(off.group(1));
                 String actual = off.group(2).trim();
                 if (actual.startsWith("/")) {
                     actual = actual.substring(1);
@@ -191,7 +195,7 @@ public final class CronEngine {
 
             Matcher m = WAIT.matcher(command.trim());
             if (m.matches()) {
-                long seconds = Math.min(Long.parseLong(m.group(1)), MAX_WAIT_SECONDS);
+                long seconds = seconds(m.group(1));
                 int next = i + 1;
                 if (next >= commands.size()) {
                     platform.warn("[" + jobName + "] pause finale sans commande apres : ignoree.");
@@ -218,6 +222,17 @@ public final class CronEngine {
             } catch (Exception e) {
                 platform.error("[" + jobName + "] echec de \"" + firstLine(command) + "\"", e);
             }
+        }
+    }
+
+    /**
+     * Délai lu dans une directive, borné ; un nombre démesuré ne doit pas faire avorter toute la tâche.
+     */
+    private static long seconds(String digits) {
+        try {
+            return Math.min(Long.parseLong(digits), MAX_WAIT_SECONDS);
+        } catch (NumberFormatException e) {
+            return MAX_WAIT_SECONDS;
         }
     }
 
