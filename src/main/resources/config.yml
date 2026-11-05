@@ -16,7 +16,7 @@
 # "wait:" sequentiel : sur un compte a rebours, on lit "+240" et on sait qu'on
 # est a 4 minutes, et inserer une ligne ne decale pas toutes les suivantes.
 #
-# Les placeholders (%voteparty_...%) sont resolus via PlaceholderAPI.
+# Les placeholders (%shvotesreward_...%) sont resolus via PlaceholderAPI.
 timezone: Europe/Paris
 log-executions: true
 startup:
@@ -77,4 +77,4 @@ jobs:
     enabled: true
     cron: 59 23 * * *
     commands:
-    - bc &7&l« &a&lSH &8&l» &a%voteparty_top_DAILY_name_1% &fa été &aTop voteur du jour &favec &6%voteparty_top_DAILY_votes_1% votes &f!
+    - bc &7&l« &a&lSH &8&l» &a%shvotesreward_top_daily_name_1% &fa été &aTop voteur du jour &favec &6%shvotesreward_top_daily_votes_1% votes &f!

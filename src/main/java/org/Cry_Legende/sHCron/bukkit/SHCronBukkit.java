@@ -53,7 +53,7 @@ public final class SHCronBukkit extends JavaPlugin implements Platform, TabExecu
     }
 
     /**
-     * Resolution en contexte serveur (joueur null), suffisante pour %voteparty_...%.
+     * Resolution en contexte serveur (joueur null), suffisante pour %shvotesreward_...%.
      */
     private String applyPlaceholders(String command) {
         if (papiSetPlaceholders == null || command.indexOf('%') < 0) {
