@@ -26,13 +26,26 @@ Utilisé sur : **Opale · Lobby · Login · Proxy**.
 
 | Commande | Alias | Description | Permission |
 |---|---|---|---|
-| `/shcron` | — | Gestion des taches planifiees | `shcron.admin` |
+| `/shcron list` | — | Liste les tâches (état, expression cron, nombre de commandes). | `shcron.admin.list` |
+| `/shcron run <tâche>` | — | Déclenche une tâche tout de suite. | `shcron.admin.run` |
+| `/shcron reload` | — | Relit `config.yml` et `messages.yml`. Un fichier illisible ne change rien : les tâches en place continuent. | `shcron.admin.reload` |
+
+Sans argument, ou avec une sous-commande inconnue, une ligne d'usage ne liste que les sous-commandes permises à l'expéditeur. Les trois sous-commandes marchent depuis la console, sur Paper comme sur Velocity.
 
 ## Permissions
 
 | Permission | Description | Par défaut |
 |---|---|---|
-| `shcron.admin` | Acces a la commande /shcron | `op` |
+| `shcron.admin` | Toute l'administration (parent des trois nœuds suivants). | `op` |
+| `shcron.admin.list` | Lister les tâches. | `op` |
+| `shcron.admin.reload` | Recharger la configuration. | `op` |
+| `shcron.admin.run` | Déclencher une tâche. | `op` |
+
+Sur Velocity, les nœuds ne se déclarent pas et le parent ne donne pas ses enfants : accorder `shcron.admin` ou le nœud précis dans LuckPerms. Le plugin teste toujours le nœud précis ou `shcron.admin`.
+
+## Messages
+
+Les textes sont dans `messages.yml`, créé à partir du jar s'il manque (dans `plugins/SHCron` sur Paper, `plugins/shcron` sur Velocity).
 
 ## Configuration
 
@@ -40,7 +53,8 @@ Fichiers par défaut repris du serveur (secrets remplacés par `CHANGE_ME`). Cli
 
 <pre>
 plugins/SHCron/
-└── <a href="src/main/resources/config.yml">config.yml</a>
+├── <a href="src/main/resources/config.yml">config.yml</a>
+└── <a href="src/main/resources/messages.yml">messages.yml</a>
 </pre>
 
 ## Compilation

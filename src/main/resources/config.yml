@@ -1,22 +1,46 @@
-# SHCron - serveur opale
-# Repris de plugins/SRV-Cron/config.yml, avec deux corrections.
+# ======================================================================== #
+# SHCron
 #
-# 1. "restart" (5h55) et "restart2" (5h59) etaient deux taches separees pour
-#    une seule sequence. Si le serveur plantait et redemarrait entre les deux,
-#    la seconde s'executait quand meme et arretait un serveur tout juste
-#    redemarre. C'est arrive : les logs montrent des demarrages a 01h36 puis
-#    01h37. Tout est desormais une seule tache : si le serveur redemarre en
-#    cours de sequence, les commandes en attente disparaissent avec la JVM.
+# Plugin : planificateur de commandes exécutées par la console, au format cron. Le même jar tourne sur Paper/Purpur
+# et sur Velocity (sur Velocity la commande d'arrêt est "end", sur Paper "stop").
 #
-# 2. Un message etait present deux fois au meme offset (+185), donc affiche
-#    en double aux joueurs. Les doublons exacts ont ete retires.
+# Commande (alias : aucun) :
+#   /shcron list      Liste les tâches (état, expression cron, nombre de commandes).
+#   /shcron run <t>   Déclenche la tâche <t> tout de suite.
+#   /shcron reload    Relit ce fichier et messages.yml. Un fichier illisible ne change rien : les tâches en place
+#                     continuent. Les tâches ignorées (cron invalide, aucune commande) sont listées dans la réponse.
+#                     La liste startup n'est pas rejouée, et les commandes "+N" ou "wait:" déjà programmées par une
+#                     tâche en cours se terminent avec l'ancienne liste.
 #
-# "+N commande" = decalage absolu depuis le declenchement de la tache, en
-# parallele. Equivalent exact du "timer N" de SRV-Cron. Choisi plutot que le
-# "wait:" sequentiel : sur un compte a rebours, on lit "+240" et on sait qu'on
-# est a 4 minutes, et inserer une ligne ne decale pas toutes les suivantes.
+# Permissions (par défaut : op) :
+#   shcron.admin          Toutes les sous-commandes.
+#   shcron.admin.list     /shcron list
+#   shcron.admin.reload   /shcron reload
+#   shcron.admin.run      /shcron run
+# Sur Velocity ces nœuds ne se déclarent pas et le parent ne donne pas ses enfants : accorder shcron.admin ou le
+# nœud précis dans LuckPerms.
 #
-# Les placeholders (%shvotesreward_...%) sont resolus via PlaceholderAPI.
+# Les textes sont dans messages.yml.
+#
+# timezone : fuseau des expressions cron (vide : fuseau du système).
+# log-executions : écrire chaque commande exécutée dans la console.
+# startup : commandes lancées une fois au démarrage, après delay-seconds.
+# jobs.<nom> : enabled, cron, commands.
+#
+# cron : minute heure jour-du-mois mois jour-de-la-semaine
+#   *          toutes les valeurs        5          la valeur 5          1-5   de 1 à 5
+#   */4        une valeur sur 4          1-20/2     de 1 à 20, une sur deux       0,30   les valeurs 0 et 30
+#   jour-de-la-semaine : 0 ou 7 = dimanche, 1 = lundi ... 6 = samedi, ou MON, TUE...
+#   mois : 1-12 ou JAN, FEB...
+#   Raccourcis : @hourly @daily @midnight @weekly @monthly @yearly
+#   "*/4" en jour du mois donne le 1, 5, 9, ... 29 puis repart au 1 du mois suivant.
+#
+# commands : le "/" en début de commande est facultatif.
+#   "+N commande"  Décalage absolu de N secondes depuis le déclenchement de la tâche, en parallèle des autres lignes.
+#   "wait: N"      Pause de N secondes avant la suite de la liste (cumulative). Ne pas mélanger avec les "+N".
+#   Les placeholders PlaceholderAPI (%shvotesreward_...%) sont résolus.
+# ======================================================================== #
+
 timezone: Europe/Paris
 log-executions: true
 startup:

@@ -2,7 +2,9 @@ package org.Cry_Legende.sHCron.core;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -60,10 +62,22 @@ public final class CronEngine {
 
     public CronEngine(Platform platform) {
         this.platform = platform;
+        this.messages = new CronMessages(platform);
+    }
+
+    private final CronMessages messages;
+
+    public CronMessages messages() {
+        return messages;
     }
 
     public void start() {
         this.config = CronConfig.load(platform);
+        try {
+            messages.use(messages.read());
+        } catch (ConfigError e) {
+            platform.error("messages.yml illisible, textes par defaut utilises", e);
+        }
         announce();
 
         if (config.startupEnabled() && !config.startupCommands().isEmpty()) {
@@ -99,10 +113,36 @@ public final class CronEngine {
         return config;
     }
 
-    public void reload() {
-        this.config = CronConfig.load(platform);
+    /**
+     * Relit config.yml et messages.yml. Les deux sont d'abord lus à part : si l'un est illisible, la configuration
+     * en place continue de tourner.
+     *
+     * @return une entrée « fichier\nerreur » par fichier illisible, vide si tout a été rechargé
+     */
+    public synchronized List<String> reload() {
+        List<String> errors = new ArrayList<>();
+        CronConfig fresh = null;
+        Map<String, String> freshMessages = null;
+        try {
+            fresh = CronConfig.read(platform);
+        } catch (ConfigError e) {
+            platform.error(e.getMessage(), e);
+            errors.add(e.file() + "\n" + e.reason());
+        }
+        try {
+            freshMessages = messages.read();
+        } catch (ConfigError e) {
+            platform.error(e.getMessage(), e);
+            errors.add(e.file() + "\n" + e.reason());
+        }
+        if (!errors.isEmpty()) {
+            return errors;
+        }
+        this.config = fresh;
+        messages.use(freshMessages);
         lastMinute.set(currentMinute());
         announce();
+        return errors;
     }
 
     private void announce() {

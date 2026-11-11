@@ -1,0 +1,21 @@
+# Messages de SHCron. Couleurs avec &. Un message vide ("") n'est pas envoyé.
+#
+# Variables :
+#   %subcommands%  sous-commandes que l'expéditeur peut utiliser, séparées par |
+#   %zone%         fuseau horaire des tâches
+#   %state% %name% %schedule% %commands%   tâche : état (●), nom, expression cron, nombre de commandes
+#   %active% %total%   tâches actives et nombre total de tâches
+#   %detail%       tâche ignorée au rechargement et raison
+#   %file% %error%     fichier illisible et première ligne de son erreur
+
+no-permission: "&7&l« &f&lSH &8&l» &fCommande inconnue, essayez autre chose."
+usage: "&7&l« &b&lSH &8&l» &7Utilisation : &b/shcron <%subcommands%>"
+list-header: "&7&l« &b&lSH &8&l» &7Tâches (fuseau &b%zone%&7) :"
+list-empty: "&7  aucune tâche configurée."
+list-entry: "&7  %state% &f%name% &8| &b%schedule% &8| &7%commands% cmd"
+reload-ok: "&7&l« &a&lSH &8&l» &7Configuration &arechargée &7: &a%active% &7tâche(s) active(s) sur &a%total%&7. Les clés de &bstartup &7et les décalages déjà programmés ne sont pas rejoués."
+reload-warning: "&8• &e%detail%"
+reload-error: "&7&l« &c&lSH &8&l» &7Rechargement annulé, &cles tâches en place continuent&7. Fichier &c%file%&7 : &c%error%"
+run-usage: "&7&l« &b&lSH &8&l» &7Utilisation : &b/shcron run <tâche>"
+run-ok: "&7&l« &a&lSH &8&l» &7Tâche &a%name% &7déclenchée."
+run-missing: "&7&l« &c&lSH &8&l» &7Tâche &c%name% &7introuvable."

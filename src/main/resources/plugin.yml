@@ -15,9 +15,21 @@ commands:
   shcron:
     description: Gestion des taches planifiees
     usage: /shcron <list|reload|run>
-    permission: shcron.admin
 
 permissions:
   shcron.admin:
-    description: Acces a la commande /shcron
+    description: Toute l'administration de SHCron
+    default: op
+    children:
+      shcron.admin.list: true
+      shcron.admin.reload: true
+      shcron.admin.run: true
+  shcron.admin.list:
+    description: Lister les taches planifiees
+    default: op
+  shcron.admin.reload:
+    description: Recharger config.yml et messages.yml
+    default: op
+  shcron.admin.run:
+    description: Declencher une tache a la demande
     default: op

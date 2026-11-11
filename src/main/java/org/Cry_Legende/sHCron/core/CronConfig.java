@@ -23,19 +23,36 @@ public final class CronConfig {
     private final int startupDelaySeconds;
     private final List<String> startupCommands;
     private final List<CronJob> jobs;
+    private final List<String> warnings;
 
     private CronConfig(ZoneId zone, boolean logExecutions, boolean startupEnabled,
-                       int startupDelaySeconds, List<String> startupCommands, List<CronJob> jobs) {
+                       int startupDelaySeconds, List<String> startupCommands, List<CronJob> jobs, List<String> warnings) {
         this.zone = zone;
         this.logExecutions = logExecutions;
         this.startupEnabled = startupEnabled;
         this.startupDelaySeconds = startupDelaySeconds;
         this.startupCommands = List.copyOf(startupCommands);
         this.jobs = List.copyOf(jobs);
+        this.warnings = List.copyOf(warnings);
     }
 
-    @SuppressWarnings("unchecked")
+    /** Lecture au démarrage : un fichier illisible est signalé en console et ne planifie aucune tâche. */
     public static CronConfig load(Platform platform) {
+        try {
+            return read(platform);
+        } catch (ConfigError e) {
+            platform.error("config.yml illisible, aucune tache ne sera planifiee", e);
+            return new CronConfig(ZoneId.systemDefault(), true, false, 0, List.of(), List.of(), List.of());
+        }
+    }
+
+    /**
+     * Lit config.yml (créé à partir du jar s'il manque) sans rien appliquer.
+     *
+     * @throws ConfigError si le fichier est illisible : l'appelant garde alors sa configuration précédente
+     */
+    @SuppressWarnings("unchecked")
+    public static CronConfig read(Platform platform) throws ConfigError {
         Path folder = platform.dataFolder();
         Path file = folder.resolve("config.yml");
         try {
@@ -52,6 +69,7 @@ public final class CronConfig {
             platform.error("Impossible de preparer config.yml", e);
         }
 
+        List<String> warnings = new ArrayList<>();
         Map<String, Object> root = Map.of();
         try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             Object loaded = new Yaml().load(reader);
@@ -59,8 +77,7 @@ public final class CronConfig {
                 root = (Map<String, Object>) m;
             }
         } catch (Exception e) {
-            platform.error("config.yml illisible, aucune tache ne sera planifiee", e);
-            return new CronConfig(ZoneId.systemDefault(), true, false, 0, List.of(), List.of());
+            throw new ConfigError("config.yml", e);
         }
 
         ZoneId zone;
@@ -71,7 +88,7 @@ public final class CronConfig {
             try {
                 zone = ZoneId.of(String.valueOf(tz));
             } catch (Exception e) {
-                platform.warn("Fuseau horaire inconnu \"" + tz + "\", utilisation de " + ZoneId.systemDefault());
+                warn(platform, warnings, "Fuseau horaire inconnu \"" + tz + "\", utilisation de " + ZoneId.systemDefault());
                 zone = ZoneId.systemDefault();
             }
         }
@@ -88,29 +105,39 @@ public final class CronConfig {
         for (Map.Entry<String, Object> entry : jobsSection.entrySet()) {
             String name = entry.getKey();
             if (!(entry.getValue() instanceof Map<?, ?> raw)) {
-                platform.warn("Tache \"" + name + "\" ignoree : bloc invalide.");
+                warn(platform, warnings, "Tache \"" + name + "\" ignoree : bloc invalide.");
                 continue;
             }
             Map<String, Object> job = (Map<String, Object>) raw;
             boolean enabled = bool(job, "enabled", true);
             Object cron = job.get("cron");
             if (cron == null) {
-                platform.warn("Tache \"" + name + "\" ignoree : cle \"cron\" absente.");
+                warn(platform, warnings, "Tache \"" + name + "\" ignoree : cle \"cron\" absente.");
                 continue;
             }
             List<String> commands = strings(job.get("commands"));
             if (commands.isEmpty()) {
-                platform.warn("Tache \"" + name + "\" ignoree : aucune commande.");
+                warn(platform, warnings, "Tache \"" + name + "\" ignoree : aucune commande.");
                 continue;
             }
             try {
                 jobs.add(new CronJob(name, enabled, CronExpression.parse(String.valueOf(cron)), commands));
             } catch (IllegalArgumentException e) {
-                platform.warn("Tache \"" + name + "\" ignoree : " + e.getMessage());
+                warn(platform, warnings, "Tache \"" + name + "\" ignoree : " + e.getMessage());
             }
         }
 
-        return new CronConfig(zone, logExec, startupEnabled, startupDelay, startupCommands, jobs);
+        return new CronConfig(zone, logExec, startupEnabled, startupDelay, startupCommands, jobs, warnings);
+    }
+
+    private static void warn(Platform platform, List<String> warnings, String text) {
+        platform.warn(text);
+        warnings.add(text);
+    }
+
+    /** Avertissements de la lecture (tâches ignorées, fuseau inconnu...). */
+    public List<String> warnings() {
+        return warnings;
     }
 
     @SuppressWarnings("unchecked")

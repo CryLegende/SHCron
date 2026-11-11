@@ -11,21 +11,19 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.Cry_Legende.sHCron.core.CronCommand;
 import org.Cry_Legende.sHCron.core.CronEngine;
-import org.Cry_Legende.sHCron.core.CronJob;
 import org.Cry_Legende.sHCron.core.Platform;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 @Plugin(
     id = "shcron",
     name = "SHCron",
-    version = "1.2",
+    version = "1.3",
     description = "Planificateur de commandes",
     authors = {"Cry_Legende"}
 )
@@ -38,6 +36,7 @@ public final class SHCronVelocity implements Platform {
     private final Path dataFolder;
 
     private CronEngine engine;
+    private CronCommand cronCommand;
     private ScheduledTask task;
 
     @Inject
@@ -51,6 +50,7 @@ public final class SHCronVelocity implements Platform {
     public void onProxyInitialize(ProxyInitializeEvent event) {
         engine = new CronEngine(this);
         engine.start();
+        cronCommand = new CronCommand(engine);
         proxy.getCommandManager().register(
             proxy.getCommandManager().metaBuilder("shcron").plugin(this).build(),
             new ShCronCommand());
@@ -115,71 +115,37 @@ public final class SHCronVelocity implements Platform {
 
     private final class ShCronCommand implements SimpleCommand {
 
-        private void send(CommandSource to, String message) {
-            to.sendMessage(LEGACY.deserialize(message));
+        private CronCommand.Sender wrap(CommandSource source) {
+            return new CronCommand.Sender() {
+                @Override
+                public void send(String legacyText) {
+                    source.sendMessage(LEGACY.deserialize(legacyText));
+                }
+
+                @Override
+                public boolean has(String permission) {
+                    return source.hasPermission(permission);
+                }
+            };
         }
 
         @Override
         public void execute(Invocation invocation) {
-            CommandSource sender = invocation.source();
-            String[] args = invocation.arguments();
-
-            if (args.length == 0) {
-                send(sender, "&8&l« &b&lSHCRON &8&l» &7Syntaxe : &b/shcron <list|reload|run>");
-                return;
-            }
-            switch (args[0].toLowerCase(Locale.ROOT)) {
-                case "list" -> {
-                    send(sender, "&8&l« &b&lSHCRON &8&l» &7Taches (&bfuseau " + engine.config().zone() + "&7) :");
-                    if (engine.config().jobs().isEmpty()) {
-                        send(sender, "&7  aucune tache configuree.");
-                    }
-                    for (CronJob job : engine.config().jobs()) {
-                        send(sender, "&7  " + (job.enabled() ? "&a●" : "&c●") + " &f" + job.name()
-                            + " &8| &b" + job.schedule() + " &8| &7" + job.commands().size() + " cmd");
-                    }
-                }
-                case "reload" -> {
-                    engine.reload();
-                    send(sender, "&8&l« &b&lSHCRON &8&l» &7Configuration &brechargee&7.");
-                }
-                case "run" -> {
-                    if (args.length < 2) {
-                        send(sender, "&8&l« &b&lSHCRON &8&l» &7Syntaxe : &b/shcron run <tache>");
-                        return;
-                    }
-                    if (engine.runNow(args[1])) {
-                        send(sender, "&8&l« &b&lSHCRON &8&l» &7Tache &b" + args[1] + " &7declenchee.");
-                    } else {
-                        send(sender, "&8&l« &c&lSHCRON &8&l» &7Tache &c" + args[1] + " &7introuvable.");
-                    }
-                }
-                default -> send(sender, "&8&l« &b&lSHCRON &8&l» &7Syntaxe : &b/shcron <list|reload|run>");
-            }
+            cronCommand.execute(wrap(invocation.source()), invocation.arguments());
         }
 
         @Override
         public List<String> suggest(Invocation invocation) {
             String[] args = invocation.arguments();
-            if (args.length <= 1) {
-                String q = args.length == 0 ? "" : args[0].toLowerCase(Locale.ROOT);
-                return List.of("list", "reload", "run").stream().filter(s -> s.startsWith(q)).toList();
+            if (args.length == 0) {
+                args = new String[]{""};
             }
-            if (args.length == 2 && args[0].equalsIgnoreCase("run")) {
-                List<String> names = new ArrayList<>();
-                for (CronJob job : engine.config().jobs()) {
-                    if (job.name().toLowerCase(Locale.ROOT).startsWith(args[1].toLowerCase(Locale.ROOT))) {
-                        names.add(job.name());
-                    }
-                }
-                return names;
-            }
-            return List.of();
+            return cronCommand.suggest(wrap(invocation.source()), args);
         }
 
         @Override
         public boolean hasPermission(Invocation invocation) {
-            return invocation.source().hasPermission("shcron.admin");
+            return CronCommand.canUse(wrap(invocation.source()));
         }
     }
 }
