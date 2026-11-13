@@ -25,7 +25,7 @@
 # timezone : fuseau des expressions cron (vide : fuseau du système).
 # log-executions : écrire chaque commande exécutée dans la console.
 # startup : commandes lancées une fois au démarrage, après delay-seconds.
-# jobs.<nom> : enabled, cron, commands.
+# jobs.<nom> : enabled, cron, commands. "cron: manual" : tâche sans horaire, lancée seulement par /shcron run.
 #
 # cron : minute heure jour-du-mois mois jour-de-la-semaine
 #   *          toutes les valeurs        5          la valeur 5          1-5   de 1 à 5
@@ -38,6 +38,10 @@
 # commands : le "/" en début de commande est facultatif.
 #   "+N commande"  Décalage absolu de N secondes depuis le déclenchement de la tâche, en parallèle des autres lignes.
 #   "wait: N"      Pause de N secondes avant la suite de la liste (cumulative). Ne pas mélanger avec les "+N".
+#   "until N: A == B"  Attend que la condition soit vraie avant la suite, N secondes au plus : passé ce délai, la suite
+#                  part quand même. Relue chaque seconde, placeholders résolus des deux côtés. Opérateurs : == != < <= > >=
+#                  (deux nombres sont comparés en nombres ; sinon seuls == et != comparent le texte, sans la casse).
+#                  Exemple : "until 400: %crazyenvoys_envoys_left% == 0". Sur Velocity, il n'y a pas de placeholders.
 #   Les placeholders PlaceholderAPI (%shvotesreward_...%) sont résolus.
 # ======================================================================== #
 
@@ -97,6 +101,18 @@ jobs:
     - 'bc &7&l« &d&lSH &8&l» &fUn évènement &dCargaison &fcommencera dans &d1 minute &f!
 
       &7🔎 &fᴏʙᴊᴇᴄᴛɪꜰ : &7ᴄᴏʟʟᴇᴄᴛᴇᴢ ʟᴇ ᴘʟᴜѕ ᴅᴇ ᴄᴀʀɢᴀɪѕᴏɴ [/event]'
+  cargaison-double:
+    enabled: true
+    cron: manual
+    commands:
+    - crazyenvoys start
+    - 'wait: 20'
+    - 'until 400: %crazyenvoys_envoys_left% == 0'
+    - 'bc &7&l« &d&lSH &8&l» &fDouble &dCargaison &f: la deuxième commence dans &d1 minute &f!
+
+      &7🔎 &fᴏʙᴊᴇᴄᴛɪꜰ : &7ᴄᴏʟʟᴇᴄᴛᴇᴢ ʟᴇ ᴘʟᴜѕ ᴅᴇ ᴄᴀʀɢᴀɪѕᴏɴ [/event]'
+    - 'wait: 60'
+    - crazyenvoys start
   topvote:
     enabled: true
     cron: 59 23 * * *

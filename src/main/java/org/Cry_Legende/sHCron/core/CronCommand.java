@@ -66,7 +66,7 @@ public final class CronCommand {
         }
         for (CronJob job : config.jobs()) {
             sender.send(messages.get("list-entry", "%state%", job.enabled() ? "&a●" : "&c●", "%name%", job.name(),
-                "%schedule%", String.valueOf(job.schedule()), "%commands%", String.valueOf(job.commands().size())));
+                "%schedule%", job.scheduleText(), "%commands%", String.valueOf(job.commands().size())));
         }
     }
 

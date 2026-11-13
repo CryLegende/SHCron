@@ -110,6 +110,18 @@ public final class SHCronBukkit extends JavaPlugin implements Platform, TabExecu
     }
 
     @Override
+    public java.util.concurrent.CompletableFuture<String> resolve(String text) {
+        java.util.concurrent.CompletableFuture<String> result = new java.util.concurrent.CompletableFuture<>();
+        if (!isEnabled()) {
+            result.complete(text);
+            return result;
+        }
+        // Même raison que pour les commandes : les extensions PlaceholderAPI se lisent sur le thread principal.
+        Bukkit.getScheduler().runTask(this, () -> result.complete(applyPlaceholders(text)));
+        return result;
+    }
+
+    @Override
     public void startTicking(Runnable tick) {
         task = Bukkit.getScheduler().runTaskTimerAsynchronously(this, tick, 20L, 20L);
     }

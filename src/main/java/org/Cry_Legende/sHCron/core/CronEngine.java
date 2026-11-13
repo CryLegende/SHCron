@@ -151,7 +151,7 @@ public final class CronEngine {
             + config.jobs().size() + ", fuseau " + config.zone() + ".");
         for (CronJob job : config.jobs()) {
             platform.info("  " + (job.enabled() ? "[on] " : "[off] ") + job.name()
-                + "  cron=\"" + job.schedule() + "\"  " + job.commands().size() + " commande(s)");
+                + "  cron=\"" + job.scheduleText() + "\"  " + job.commands().size() + " commande(s)");
         }
     }
 
@@ -177,7 +177,7 @@ public final class CronEngine {
             CronConfig current = config;
             ZonedDateTime now = Instant.ofEpochSecond(minute * 60L).atZone(current.zone());
             for (CronJob job : current.jobs()) {
-                if (job.enabled() && job.schedule().matches(now)) {
+                if (job.enabled() && !job.manual() && job.schedule().matches(now)) {
                     run(job.name(), job.commands());
                 }
             }
@@ -254,6 +254,20 @@ public final class CronEngine {
                 return;
             }
 
+            Condition condition = Condition.parse(command, MAX_WAIT_SECONDS);
+            if (condition != null) {
+                int next = i + 1;
+                if (next >= commands.size()) {
+                    platform.warn("[" + jobName + "] attente finale sans commande apres : ignoree.");
+                    return;
+                }
+                if (config.logExecutions()) {
+                    platform.info("[" + jobName + "] attente de \"" + condition + "\" (" + condition.timeoutSeconds() + " s au plus)");
+                }
+                awaitCondition(jobName, commands, next, condition, System.currentTimeMillis() + condition.timeoutSeconds() * 1000L);
+                return;
+            }
+
             if (config.logExecutions()) {
                 platform.info("[" + jobName + "] > " + firstLine(command));
             }
@@ -263,6 +277,38 @@ public final class CronEngine {
                 platform.error("[" + jobName + "] echec de \"" + firstLine(command) + "\"", e);
             }
         }
+    }
+
+    /**
+     * Relit la condition chaque seconde. La liste reprend des qu'elle est vraie, ou a la fin du delai :
+     * une condition jamais remplie ne doit pas laisser la tache en suspens.
+     */
+    private void awaitCondition(String jobName, List<String> commands, int next, Condition condition, long deadline) {
+        delayer().schedule(() -> {
+            try {
+                platform.resolve(condition.left()).thenCombine(platform.resolve(condition.right()), condition::test)
+                    .whenComplete((met, error) -> {
+                        try {
+                            if (error != null) {
+                                platform.error("[" + jobName + "] echec de lecture de \"" + condition + "\"", error);
+                            }
+                            if (Boolean.TRUE.equals(met)) {
+                                runFrom(jobName, commands, next);
+                            } else if (System.currentTimeMillis() >= deadline) {
+                                platform.warn("[" + jobName + "] \"" + condition + "\" toujours fausse apres "
+                                    + condition.timeoutSeconds() + " s : la suite part quand meme.");
+                                runFrom(jobName, commands, next);
+                            } else {
+                                awaitCondition(jobName, commands, next, condition, deadline);
+                            }
+                        } catch (Exception e) {
+                            platform.error("[" + jobName + "] echec apres l'attente", e);
+                        }
+                    });
+            } catch (Exception e) {
+                platform.error("[" + jobName + "] echec pendant l'attente", e);
+            }
+        }, 1, TimeUnit.SECONDS);
     }
 
     /**

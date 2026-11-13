@@ -120,8 +120,13 @@ public final class CronConfig {
                 warn(platform, warnings, "Tache \"" + name + "\" ignoree : aucune commande.");
                 continue;
             }
+            String expression = String.valueOf(cron).trim();
+            if (expression.equalsIgnoreCase("manual") || expression.equalsIgnoreCase("manuel")) {
+                jobs.add(new CronJob(name, enabled, null, commands));
+                continue;
+            }
             try {
-                jobs.add(new CronJob(name, enabled, CronExpression.parse(String.valueOf(cron)), commands));
+                jobs.add(new CronJob(name, enabled, CronExpression.parse(expression), commands));
             } catch (IllegalArgumentException e) {
                 warn(platform, warnings, "Tache \"" + name + "\" ignoree : " + e.getMessage());
             }

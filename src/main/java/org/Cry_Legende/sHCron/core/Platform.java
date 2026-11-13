@@ -23,6 +23,14 @@ public interface Platform {
     void dispatchConsole(String command);
 
     /**
+     * Resout les placeholders d'un texte, hors commande (directive "until").
+     * Sans systeme de placeholders sur la plateforme, le texte revient tel quel.
+     */
+    default java.util.concurrent.CompletableFuture<String> resolve(String text) {
+        return java.util.concurrent.CompletableFuture.completedFuture(text);
+    }
+
+    /**
      * Appelle {@code tick} une fois par seconde.
      */
     void startTicking(Runnable tick);
