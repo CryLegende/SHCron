@@ -91,16 +91,12 @@ jobs:
     enabled: true
     cron: 25 18 * * *
     commands:
-    - 'bc &7&l« &d&lSH &8&l» &fUn évènement &dCargaison &fcommencera dans &d5 minutes &f!
-
-      &7🔎 &fᴏʙᴊᴇᴄᴛɪꜰ : &7ᴄᴏʟʟᴇᴄᴛᴇᴢ ʟᴇ ᴘʟᴜѕ ᴅᴇ ᴄᴀʀɢᴀɪѕᴏɴ [/event]'
+    - 'bc &7&l« &d&lSH &8&l» &fUn évènement &dCargaison &fcommencera dans &d5 minutes &f!\n&7🔎 &fᴏʙᴊᴇᴄᴛɪꜰ : &7ᴄᴏʟʟᴇᴄᴛᴇᴢ ʟᴇ ᴘʟᴜѕ ᴅᴇ ᴄᴀʀɢᴀɪѕᴏɴ [/event]'
   envoy2:
     enabled: true
     cron: 29 18 * * *
     commands:
-    - 'bc &7&l« &d&lSH &8&l» &fUn évènement &dCargaison &fcommencera dans &d1 minute &f!
-
-      &7🔎 &fᴏʙᴊᴇᴄᴛɪꜰ : &7ᴄᴏʟʟᴇᴄᴛᴇᴢ ʟᴇ ᴘʟᴜѕ ᴅᴇ ᴄᴀʀɢᴀɪѕᴏɴ [/event]'
+    - 'bc &7&l« &d&lSH &8&l» &fUn évènement &dCargaison &fcommencera dans &d1 minute &f!\n&7🔎 &fᴏʙᴊᴇᴄᴛɪꜰ : &7ᴄᴏʟʟᴇᴄᴛᴇᴢ ʟᴇ ᴘʟᴜѕ ᴅᴇ ᴄᴀʀɢᴀɪѕᴏɴ [/event]'
   cargaison-double:
     enabled: true
     cron: manual
@@ -108,9 +104,7 @@ jobs:
     - crazyenvoys start
     - 'wait: 20'
     - 'until 400: %crazyenvoys_envoys_left% == 0'
-    - 'bc &7&l« &d&lSH &8&l» &fDouble &dCargaison &f: la deuxième commence dans &d1 minute &f!
-
-      &7🔎 &fᴏʙᴊᴇᴄᴛɪꜰ : &7ᴄᴏʟʟᴇᴄᴛᴇᴢ ʟᴇ ᴘʟᴜѕ ᴅᴇ ᴄᴀʀɢᴀɪѕᴏɴ [/event]'
+    - 'bc &7&l« &d&lSH &8&l» &fDouble &dCargaison &f: la deuxième commence dans &d1 minute &f!\n&7🔎 &fᴏʙᴊᴇᴄᴛɪꜰ : &7ᴄᴏʟʟᴇᴄᴛᴇᴢ ʟᴇ ᴘʟᴜѕ ᴅᴇ ᴄᴀʀɢᴀɪѕᴏɴ [/event]'
     - 'wait: 60'
     - crazyenvoys start
   topvote:
